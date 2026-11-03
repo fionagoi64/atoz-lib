@@ -8,6 +8,7 @@ describe('BooksController', () => {
 
   const mockBooksService = {
     findAll: vi.fn(),
+    findOne: vi.fn(),
     create: vi.fn(),
   };
 
@@ -51,5 +52,18 @@ describe('BooksController', () => {
 
     await expect(controller.create(input)).resolves.toEqual(createdBook);
     expect(mockBooksService.create).toHaveBeenCalledWith(input);
+  });
+
+  it('should return a book by ID', async () => {
+    const book = {
+      id: 'book-001',
+      title: 'Atomic Habits',
+    };
+
+    mockBooksService.findOne.mockResolvedValue(book);
+
+    await expect(controller.findOne('book-001')).resolves.toEqual(book);
+
+    expect(mockBooksService.findOne).toHaveBeenCalledWith('book-001');
   });
 });

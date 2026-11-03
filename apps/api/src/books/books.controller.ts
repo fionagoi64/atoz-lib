@@ -3,7 +3,8 @@ import {
   createBookSchema,
   type CreateBookDto,
 } from '@atoz/schemas';
-import { Body, Controller, Get, Post, UsePipes } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UsePipes } from '@nestjs/common';
+import { ApiNotFoundResponse } from '@nestjs/swagger';
 import { z } from 'zod';
 import { ApiZodBody } from '../common/decorators/api-zod-body.decorator.js';
 import { ApiZodResponse } from '../common/decorators/api-zod-response.decorator.js';
@@ -18,6 +19,13 @@ export class BooksController {
   @ApiZodResponse(200, z.array(bookSchema), 'Book list retrieved successfully')
   findAll() {
     return this.booksService.findAll();
+  }
+
+  @Get(':id')
+  @ApiZodResponse(200, bookSchema, 'Book retrieved successfully')
+  @ApiNotFoundResponse({ description: 'Book not found' })
+  findOne(@Param('id') id: string) {
+    return this.booksService.findOne(id);
   }
 
   @Post()
