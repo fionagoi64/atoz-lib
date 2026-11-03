@@ -3,14 +3,20 @@
 
 @source "../../../packages/ui/src";
 
+/* Reader Light */
 :root {
-  color-scheme: light;
-
   --background: #fffaf3;
   --foreground: #38271e;
-
   --primary: #9a5b30;
   --primary-foreground: #ffffff;
+}
+
+/* Reader Dark */
+.dark {
+  --background: #1c1714;
+  --foreground: #f5e9dc;
+  --primary: #d6a477;
+  --primary-foreground: #241810;
 }
 
 html {

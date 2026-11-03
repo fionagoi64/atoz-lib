@@ -25,6 +25,7 @@
     "@types/react-dom": "19.2.5",
     "eslint": "10.9.1",
     "postcss": "^8.5.32",
+    "shadcn": "^4.23.0",
     "tailwindcss": "^4.3.3",
     "typescript": "7.0.2"
   }

@@ -3,12 +3,18 @@
 
 @source "../../../packages/ui/src";
 
+/* Admin Light */
 :root {
-  color-scheme: light;
-
   --background: #f8fafc;
   --foreground: #0f172a;
-
   --primary: #2563eb;
   --primary-foreground: #ffffff;
+}
+
+/* Admin Dark */
+.dark {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --primary: #60a5fa;
+  --primary-foreground: #0f172a;
 }
