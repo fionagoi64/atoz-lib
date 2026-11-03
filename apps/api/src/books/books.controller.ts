@@ -1,10 +1,20 @@
 import {
   bookSchema,
   createBookSchema,
+  updateBookSchema,
   type CreateBookDto,
+  type UpdateBookDto,
 } from '@atoz/schemas';
-import { Body, Controller, Get, Param, Post, UsePipes } from '@nestjs/common';
-import { ApiNotFoundResponse } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UsePipes,
+} from '@nestjs/common';
+import { ApiConflictResponse, ApiNotFoundResponse } from '@nestjs/swagger';
 import { z } from 'zod';
 import { ApiZodBody } from '../common/decorators/api-zod-body.decorator.js';
 import { ApiZodResponse } from '../common/decorators/api-zod-response.decorator.js';
@@ -31,8 +41,21 @@ export class BooksController {
   @Post()
   @ApiZodBody(createBookSchema)
   @ApiZodResponse(201, bookSchema, 'Book created successfully')
+  @ApiConflictResponse({ description: 'ISBN already exists' })
   @UsePipes(new ZodValidationPipe(createBookSchema))
   create(@Body() data: CreateBookDto) {
     return this.booksService.create(data);
+  }
+
+  @Patch(':id')
+  @ApiZodBody(updateBookSchema)
+  @ApiZodResponse(200, bookSchema, 'Book updated successfully')
+  @ApiNotFoundResponse({ description: 'Book not found' })
+  @ApiConflictResponse({ description: 'ISBN already exists' })
+  update(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(updateBookSchema)) data: UpdateBookDto,
+  ) {
+    return this.booksService.update(id, data);
   }
 }

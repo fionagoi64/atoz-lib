@@ -10,6 +10,7 @@ describe('BooksController', () => {
     findAll: vi.fn(),
     findOne: vi.fn(),
     create: vi.fn(),
+    update: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -65,5 +66,24 @@ describe('BooksController', () => {
     await expect(controller.findOne('book-001')).resolves.toEqual(book);
 
     expect(mockBooksService.findOne).toHaveBeenCalledWith('book-001');
+  });
+
+  it('should update a book', async () => {
+    const input = {
+      title: 'Atomic Habits - Updated',
+    };
+
+    const updatedBook = {
+      id: 'book-001',
+      title: 'Atomic Habits - Updated',
+    };
+
+    mockBooksService.update.mockResolvedValue(updatedBook);
+
+    await expect(controller.update('book-001', input)).resolves.toEqual(
+      updatedBook,
+    );
+
+    expect(mockBooksService.update).toHaveBeenCalledWith('book-001', input);
   });
 });
