@@ -5,18 +5,35 @@ import { AppService } from './app.service.js';
 describe('AppController', () => {
   let appController: AppController;
 
+  const mockAppService = {
+    getBooks: vi.fn().mockResolvedValue([
+      {
+        id: 'book-001',
+        title: 'Atomic Habits',
+      },
+    ]),
+  };
+
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
-      providers: [AppService],
+      providers: [
+        {
+          provide: AppService,
+          useValue: mockAppService,
+        },
+      ],
     }).compile();
 
     appController = app.get<AppController>(AppController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
-    });
+  it('should return books', async () => {
+    await expect(appController.getBooks()).resolves.toEqual([
+      {
+        id: 'book-001',
+        title: 'Atomic Habits',
+      },
+    ]);
   });
 });
