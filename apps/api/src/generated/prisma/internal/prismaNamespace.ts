@@ -16,10 +16,10 @@
  */
 
 import * as runtime from "@prisma/client/runtime/client"
-import type * as Prisma from "../models.js"
-import { type PrismaClient } from "./class.js"
+import type * as Prisma from "../models.ts"
+import { type PrismaClient } from "./class.ts"
 
-export type * from '../models.js'
+export type * from '../models.ts'
 
 export type DMMF = typeof runtime.DMMF
 
@@ -397,7 +397,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 
 export const ModelName = {
-  Book: 'Book'
+  Book: 'Book',
+  BookLifecycleLog: 'BookLifecycleLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -413,7 +414,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "book"
+    modelProps: "book" | "bookLifecycleLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -491,6 +492,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    BookLifecycleLog: {
+      payload: Prisma.$BookLifecycleLogPayload<ExtArgs>
+      fields: Prisma.BookLifecycleLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BookLifecycleLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookLifecycleLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BookLifecycleLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookLifecycleLogPayload>
+        }
+        findFirst: {
+          args: Prisma.BookLifecycleLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookLifecycleLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BookLifecycleLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookLifecycleLogPayload>
+        }
+        findMany: {
+          args: Prisma.BookLifecycleLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookLifecycleLogPayload>[]
+        }
+        create: {
+          args: Prisma.BookLifecycleLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookLifecycleLogPayload>
+        }
+        createMany: {
+          args: Prisma.BookLifecycleLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BookLifecycleLogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookLifecycleLogPayload>[]
+        }
+        delete: {
+          args: Prisma.BookLifecycleLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookLifecycleLogPayload>
+        }
+        update: {
+          args: Prisma.BookLifecycleLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookLifecycleLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.BookLifecycleLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BookLifecycleLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BookLifecycleLogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookLifecycleLogPayload>[]
+        }
+        upsert: {
+          args: Prisma.BookLifecycleLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookLifecycleLogPayload>
+        }
+        aggregate: {
+          args: Prisma.BookLifecycleLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBookLifecycleLog>
+        }
+        groupBy: {
+          args: Prisma.BookLifecycleLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BookLifecycleLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BookLifecycleLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BookLifecycleLogCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -535,11 +610,28 @@ export const BookScalarFieldEnum = {
   title: 'title',
   author: 'author',
   isbn: 'isbn',
+  status: 'status',
+  deletedAt: 'deletedAt',
+  statusBeforeDelete: 'statusBeforeDelete',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type BookScalarFieldEnum = (typeof BookScalarFieldEnum)[keyof typeof BookScalarFieldEnum]
+
+
+export const BookLifecycleLogScalarFieldEnum = {
+  id: 'id',
+  bookId: 'bookId',
+  action: 'action',
+  previousStatus: 'previousStatus',
+  newStatus: 'newStatus',
+  reason: 'reason',
+  adminId: 'adminId',
+  createdAt: 'createdAt'
+} as const
+
+export type BookLifecycleLogScalarFieldEnum = (typeof BookLifecycleLogScalarFieldEnum)[keyof typeof BookLifecycleLogScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -587,6 +679,20 @@ export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMod
 
 
 /**
+ * Reference to a field of type 'BookStatus'
+ */
+export type EnumBookStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'BookStatus[]'
+ */
+export type ListEnumBookStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -597,6 +703,20 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'BookLifecycleAction'
+ */
+export type EnumBookLifecycleActionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookLifecycleAction'>
+    
+
+
+/**
+ * Reference to a field of type 'BookLifecycleAction[]'
+ */
+export type ListEnumBookLifecycleActionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookLifecycleAction[]'>
     
 
 
@@ -765,6 +885,7 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
 export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter
 export type GlobalOmitConfig = {
   book?: Prisma.BookOmit
+  bookLifecycleLog?: Prisma.BookLifecycleLogOmit
 }
 
 /* Types for Logging */

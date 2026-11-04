@@ -12,14 +12,38 @@ describe('BooksService', () => {
     book: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
       findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
     },
+    bookLifecycleLog: {
+      create: vi.fn(),
+      findMany: vi.fn(),
+    },
+    $transaction: vi.fn(),
+  };
+
+  const existingBook = {
+    id: 'book-001',
+    title: 'Atomic Habits',
+    author: 'James Clear',
+    isbn: '9780735211292',
+    status: 'ACTIVE',
+    statusBeforeDelete: null,
+    deletedAt: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   beforeEach(async () => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+
+    mockPrismaService.$transaction.mockImplementation(
+      async (callback: (tx: typeof mockPrismaService) => Promise<unknown>) =>
+        callback(mockPrismaService),
+    );
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -34,179 +58,538 @@ describe('BooksService', () => {
     service = module.get<BooksService>(BooksService);
   });
 
-  it('should return all books', async () => {
-    const books = [{ id: 'book-001', title: 'Atomic Habits' }];
+  // ==========================================
+  // Create
+  // ==========================================
 
-    mockPrismaService.book.findMany.mockResolvedValue(books);
+  describe('create', () => {
+    it('should create a book and record CREATED log', async () => {
+      const input = {
+        title: 'Atomic Habits',
+        author: 'James Clear',
+      };
 
-    await expect(service.findAll()).resolves.toEqual(books);
-    expect(mockPrismaService.book.findMany).toHaveBeenCalledOnce();
-  });
+      mockPrismaService.book.create.mockResolvedValue(existingBook);
 
-  it('should create a book', async () => {
-    const input = {
-      title: 'Atomic Habits',
-      author: 'James Clear',
-    };
+      await expect(service.create(input)).resolves.toEqual(existingBook);
 
-    const createdBook = {
-      id: 'book-001',
-      ...input,
-    };
+      expect(mockPrismaService.book.create).toHaveBeenCalledWith({
+        data: input,
+      });
 
-    mockPrismaService.book.create.mockResolvedValue(createdBook);
+      expect(mockPrismaService.bookLifecycleLog.create).toHaveBeenCalledWith({
+        data: {
+          bookId: 'book-001',
+          action: 'CREATED',
+          previousStatus: null,
+          newStatus: 'ACTIVE',
+        },
+      });
 
-    await expect(service.create(input)).resolves.toEqual(createdBook);
+      expect(mockPrismaService.$transaction).toHaveBeenCalledOnce();
+    });
 
-    expect(mockPrismaService.book.create).toHaveBeenCalledWith({
-      data: input,
+    it('should throw ConflictException when ISBN already exists', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue(existingBook);
+
+      await expect(
+        service.create({
+          title: 'Another Book',
+          isbn: '9780735211292',
+        }),
+      ).rejects.toThrow(ConflictException);
+
+      expect(mockPrismaService.book.create).not.toHaveBeenCalled();
+      expect(mockPrismaService.bookLifecycleLog.create).not.toHaveBeenCalled();
+    });
+
+    it('should throw ConflictException when Prisma detects duplicate ISBN', async () => {
+      mockPrismaService.book.create.mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+          code: 'P2002',
+          clientVersion: '7.10.1',
+        }),
+      );
+
+      await expect(
+        service.create({
+          title: 'Another Book',
+          isbn: '9780735211292',
+        }),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should rollback when CREATED audit log fails', async () => {
+      mockPrismaService.book.create.mockResolvedValue(existingBook);
+      mockPrismaService.bookLifecycleLog.create.mockRejectedValue(
+        new Error('Audit log failed'),
+      );
+
+      await expect(service.create({ title: 'Atomic Habits' })).rejects.toThrow(
+        'Audit log failed',
+      );
+
+      expect(mockPrismaService.$transaction).toHaveBeenCalledOnce();
     });
   });
 
-  it('should return a book by ID', async () => {
-    const book = {
-      id: 'book-001',
-      title: 'Atomic Habits',
-    };
+  // ==========================================
+  // Read
+  // ==========================================
 
-    mockPrismaService.book.findUnique.mockResolvedValue(book);
+  describe('read', () => {
+    it('should return all books', async () => {
+      mockPrismaService.book.findMany.mockResolvedValue([existingBook]);
 
-    await expect(service.findOne('book-001')).resolves.toEqual(book);
+      await expect(service.findAll()).resolves.toEqual([existingBook]);
 
-    expect(mockPrismaService.book.findUnique).toHaveBeenCalledWith({
-      where: { id: 'book-001' },
+      expect(mockPrismaService.book.findMany).toHaveBeenCalledOnce();
+    });
+
+    it('should return a book by ID', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue(existingBook);
+
+      await expect(service.findOne('book-001')).resolves.toEqual(existingBook);
+    });
+
+    it('should throw NotFoundException when book does not exist', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue(null);
+
+      await expect(service.findOne('book-999')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should return lifecycle logs', async () => {
+      const logs = [
+        {
+          id: 'log-001',
+          bookId: 'book-001',
+          action: 'CREATED',
+          previousStatus: null,
+          newStatus: 'ACTIVE',
+        },
+      ];
+
+      mockPrismaService.book.findUnique.mockResolvedValue(existingBook);
+      mockPrismaService.bookLifecycleLog.findMany.mockResolvedValue(logs);
+
+      await expect(service.getLifecycleLogs('book-001')).resolves.toEqual(logs);
+
+      expect(mockPrismaService.bookLifecycleLog.findMany).toHaveBeenCalledWith({
+        where: { bookId: 'book-001' },
+        orderBy: { createdAt: 'desc' },
+      });
     });
   });
 
-  it('should throw NotFoundException when book does not exist', async () => {
-    mockPrismaService.book.findUnique.mockResolvedValue(null);
+  // ==========================================
+  // Update
+  // ==========================================
 
-    await expect(service.findOne('book-999')).rejects.toThrow(
-      NotFoundException,
-    );
+  describe('update', () => {
+    it('should update a book', async () => {
+      const updatedBook = {
+        ...existingBook,
+        title: 'Updated Title',
+      };
 
-    expect(mockPrismaService.book.findUnique).toHaveBeenCalledWith({
-      where: { id: 'book-999' },
+      mockPrismaService.book.findUnique.mockResolvedValue(existingBook);
+      mockPrismaService.book.update.mockResolvedValue(updatedBook);
+
+      await expect(
+        service.update('book-001', { title: 'Updated Title' }),
+      ).resolves.toEqual(updatedBook);
+
+      expect(mockPrismaService.book.update).toHaveBeenCalledWith({
+        where: { id: 'book-001' },
+        data: { title: 'Updated Title' },
+      });
+    });
+
+    it('should throw NotFoundException when updating non-existing book', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.update('book-999', { title: 'Updated Title' }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ConflictException when updating deleted book', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue({
+        ...existingBook,
+        status: 'DELETED',
+      });
+
+      await expect(
+        service.update('book-001', { title: 'Updated Title' }),
+      ).rejects.toThrow(ConflictException);
+
+      expect(mockPrismaService.book.update).not.toHaveBeenCalled();
+    });
+
+    it('should throw ConflictException when ISBN already exists', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue(existingBook);
+      mockPrismaService.book.findFirst.mockResolvedValue({
+        ...existingBook,
+        id: 'book-002',
+      });
+
+      await expect(
+        service.update('book-001', { isbn: '9780735211292' }),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should throw ConflictException when Prisma detects duplicate ISBN', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue(existingBook);
+      mockPrismaService.book.findFirst.mockResolvedValue(null);
+
+      mockPrismaService.book.update.mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+          code: 'P2002',
+          clientVersion: '7.10.1',
+        }),
+      );
+
+      await expect(
+        service.update('book-001', { isbn: '9780735211292' }),
+      ).rejects.toThrow(ConflictException);
     });
   });
 
-  it('should update a book', async () => {
-    const existingBook = {
-      id: 'book-001',
-      title: 'Atomic Habits',
-      author: 'James Clear',
-      isbn: '9780735211292',
-    };
+  // ==========================================
+  // Archive / Unarchive
+  // ==========================================
 
-    const input = {
-      title: 'Atomic Habits - Updated',
-    };
+  describe('archive', () => {
+    it('should archive an active book and record audit log', async () => {
+      const archivedBook = {
+        ...existingBook,
+        status: 'ARCHIVED',
+      };
 
-    const updatedBook = {
-      ...existingBook,
-      ...input,
-    };
+      mockPrismaService.book.findUnique.mockResolvedValue({
+        status: 'ACTIVE',
+      });
+      mockPrismaService.book.updateMany.mockResolvedValue({ count: 1 });
+      mockPrismaService.book.findUniqueOrThrow.mockResolvedValue(archivedBook);
 
-    mockPrismaService.book.findUnique.mockResolvedValue(existingBook);
-    mockPrismaService.book.update.mockResolvedValue(updatedBook);
+      await expect(
+        service.archive('book-001', { reason: 'Not currently in use' }),
+      ).resolves.toEqual(archivedBook);
 
-    await expect(service.update('book-001', input)).resolves.toEqual(
-      updatedBook,
-    );
+      expect(mockPrismaService.book.updateMany).toHaveBeenCalledWith({
+        where: { id: 'book-001', status: 'ACTIVE' },
+        data: { status: 'ARCHIVED' },
+      });
 
-    expect(mockPrismaService.book.update).toHaveBeenCalledWith({
-      where: { id: 'book-001' },
-      data: input,
+      expect(mockPrismaService.bookLifecycleLog.create).toHaveBeenCalledWith({
+        data: {
+          bookId: 'book-001',
+          action: 'ARCHIVED',
+          previousStatus: 'ACTIVE',
+          newStatus: 'ARCHIVED',
+          reason: 'Not currently in use',
+        },
+      });
+    });
+
+    it('should reject archiving an already archived book', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue({
+        status: 'ARCHIVED',
+      });
+
+      await expect(service.archive('book-001', {})).rejects.toThrow(
+        ConflictException,
+      );
+
+      expect(mockPrismaService.book.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException for missing book', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue(null);
+
+      await expect(service.archive('book-999', {})).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
-  it('should throw NotFoundException when updating a non-existing book', async () => {
-    mockPrismaService.book.findUnique.mockResolvedValue(null);
+  describe('unarchive', () => {
+    it('should unarchive an archived book', async () => {
+      const activeBook = {
+        ...existingBook,
+        status: 'ACTIVE',
+      };
 
-    await expect(
-      service.update('book-999', { title: 'Updated Title' }),
-    ).rejects.toThrow(NotFoundException);
+      mockPrismaService.book.findUnique.mockResolvedValue({
+        status: 'ARCHIVED',
+      });
+      mockPrismaService.book.updateMany.mockResolvedValue({ count: 1 });
+      mockPrismaService.book.findUniqueOrThrow.mockResolvedValue(activeBook);
 
-    expect(mockPrismaService.book.update).not.toHaveBeenCalled();
-  });
+      await expect(service.unarchive('book-001', {})).resolves.toEqual(
+        activeBook,
+      );
 
-  it('should throw ConflictException when ISBN already exists', async () => {
-    const existingBook = {
-      id: 'book-001',
-      title: 'Atomic Habits',
-      isbn: '9780735211292',
-    };
-
-    mockPrismaService.book.findUnique.mockResolvedValue(existingBook);
-    mockPrismaService.book.findFirst.mockResolvedValue({
-      id: 'book-002',
-      title: 'Another Book',
-      isbn: '9780735211292',
+      expect(mockPrismaService.bookLifecycleLog.create).toHaveBeenCalledWith({
+        data: {
+          bookId: 'book-001',
+          action: 'UNARCHIVED',
+          previousStatus: 'ARCHIVED',
+          newStatus: 'ACTIVE',
+          reason: null,
+        },
+      });
     });
 
-    await expect(
-      service.update('book-001', {
-        isbn: '9780735211292',
-      }),
-    ).rejects.toThrow(ConflictException);
+    it('should reject unarchiving an active book', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue({
+        status: 'ACTIVE',
+      });
 
-    expect(mockPrismaService.book.update).not.toHaveBeenCalled();
+      await expect(service.unarchive('book-001', {})).rejects.toThrow(
+        ConflictException,
+      );
+    });
   });
 
-  it('should throw ConflictException when creating a book with existing ISBN', async () => {
-    mockPrismaService.book.findUnique.mockResolvedValue({
-      id: 'book-001',
-      title: 'Atomic Habits',
-      isbn: '9780735211292',
+  // ==========================================
+  // Delete
+  // ==========================================
+
+  describe('remove', () => {
+    it('should soft delete an active book with a reason', async () => {
+      const deletedBook = {
+        ...existingBook,
+        status: 'DELETED',
+        statusBeforeDelete: 'ACTIVE',
+        deletedAt: new Date(),
+      };
+
+      mockPrismaService.book.findUnique.mockResolvedValue({
+        status: 'ACTIVE',
+      });
+      mockPrismaService.book.updateMany.mockResolvedValue({ count: 1 });
+      mockPrismaService.book.findUniqueOrThrow.mockResolvedValue(deletedBook);
+
+      await expect(
+        service.remove('book-001', { reason: 'Duplicate book' }),
+      ).resolves.toEqual(deletedBook);
+
+      expect(mockPrismaService.book.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 'book-001',
+          status: 'ACTIVE',
+        },
+        data: {
+          status: 'DELETED',
+          deletedAt: expect.any(Date),
+          statusBeforeDelete: 'ACTIVE',
+        },
+      });
+
+      expect(mockPrismaService.bookLifecycleLog.create).toHaveBeenCalledWith({
+        data: {
+          bookId: 'book-001',
+          action: 'DELETED',
+          previousStatus: 'ACTIVE',
+          newStatus: 'DELETED',
+          reason: 'Duplicate book',
+        },
+      });
     });
 
-    await expect(
-      service.create({
-        title: 'Another Book',
-        isbn: '9780735211292',
-      }),
-    ).rejects.toThrow(ConflictException);
+    it('should soft delete an active book without a reason', async () => {
+      const deletedBook = {
+        ...existingBook,
+        status: 'DELETED',
+        statusBeforeDelete: 'ACTIVE',
+        deletedAt: new Date(),
+      };
 
-    expect(mockPrismaService.book.create).not.toHaveBeenCalled();
-  });
+      mockPrismaService.book.findUnique.mockResolvedValue({
+        status: 'ACTIVE',
+      });
+      mockPrismaService.book.updateMany.mockResolvedValue({ count: 1 });
+      mockPrismaService.book.findUniqueOrThrow.mockResolvedValue(deletedBook);
 
-  it('should throw ConflictException when Prisma detects duplicate ISBN', async () => {
-    mockPrismaService.book.findUnique.mockResolvedValue(null);
+      await expect(service.remove('book-001', {})).resolves.toEqual(
+        deletedBook,
+      );
 
-    mockPrismaService.book.create.mockRejectedValue(
-      new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
-        code: 'P2002',
-        clientVersion: '7.10.1',
-      }),
-    );
+      expect(mockPrismaService.book.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 'book-001',
+          status: 'ACTIVE',
+        },
+        data: {
+          status: 'DELETED',
+          deletedAt: expect.any(Date),
+          statusBeforeDelete: 'ACTIVE',
+        },
+      });
 
-    await expect(
-      service.create({
-        title: 'Another Book',
-        isbn: '9780735211292',
-      }),
-    ).rejects.toThrow(ConflictException);
-  });
-
-  it('should throw ConflictException when updating with duplicate ISBN from Prisma', async () => {
-    mockPrismaService.book.findUnique.mockResolvedValue({
-      id: 'book-001',
-      title: 'Atomic Habits',
+      expect(mockPrismaService.bookLifecycleLog.create).toHaveBeenCalledWith({
+        data: {
+          bookId: 'book-001',
+          action: 'DELETED',
+          previousStatus: 'ACTIVE',
+          newStatus: 'DELETED',
+          reason: null,
+        },
+      });
     });
 
-    mockPrismaService.book.findFirst.mockResolvedValue(null);
+    it('should delete an archived book and remember its previous status', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue({
+        status: 'ARCHIVED',
+      });
+      mockPrismaService.book.updateMany.mockResolvedValue({ count: 1 });
+      mockPrismaService.book.findUniqueOrThrow.mockResolvedValue({
+        ...existingBook,
+        status: 'DELETED',
+        statusBeforeDelete: 'ARCHIVED',
+      });
 
-    mockPrismaService.book.update.mockRejectedValue(
-      new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
-        code: 'P2002',
-        clientVersion: '7.10.1',
-      }),
-    );
+      await service.remove('book-001', {});
 
-    await expect(
-      service.update('book-001', {
-        isbn: '9780735211292',
-      }),
-    ).rejects.toThrow(ConflictException);
+      expect(mockPrismaService.book.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 'book-001',
+          status: 'ARCHIVED',
+        },
+        data: {
+          status: 'DELETED',
+          deletedAt: expect.any(Date),
+          statusBeforeDelete: 'ARCHIVED',
+        },
+      });
+    });
+
+    it('should throw NotFoundException when book does not exist', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue(null);
+
+      await expect(service.remove('book-999', {})).rejects.toThrow(
+        NotFoundException,
+      );
+
+      expect(mockPrismaService.book.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('should throw ConflictException when book is already deleted', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue({
+        status: 'DELETED',
+      });
+
+      await expect(service.remove('book-001', {})).rejects.toThrow(
+        ConflictException,
+      );
+    });
+  });
+
+  // ==========================================
+  // Restore
+  // ==========================================
+
+  describe('restore', () => {
+    it('should restore a deleted book to ACTIVE', async () => {
+      const restoredBook = {
+        ...existingBook,
+        status: 'ACTIVE',
+        deletedAt: null,
+        statusBeforeDelete: null,
+      };
+
+      mockPrismaService.book.findUnique.mockResolvedValue({
+        status: 'DELETED',
+        statusBeforeDelete: 'ACTIVE',
+      });
+      mockPrismaService.book.updateMany.mockResolvedValue({ count: 1 });
+      mockPrismaService.book.findUniqueOrThrow.mockResolvedValue(restoredBook);
+
+      await expect(
+        service.restore('book-001', { reason: 'Mistaken deletion' }),
+      ).resolves.toEqual(restoredBook);
+
+      expect(mockPrismaService.book.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 'book-001',
+          status: 'DELETED',
+          statusBeforeDelete: 'ACTIVE',
+        },
+        data: {
+          status: 'ACTIVE',
+          deletedAt: null,
+          statusBeforeDelete: null,
+        },
+      });
+
+      expect(mockPrismaService.bookLifecycleLog.create).toHaveBeenCalledWith({
+        data: {
+          bookId: 'book-001',
+          action: 'RESTORED',
+          previousStatus: 'DELETED',
+          newStatus: 'ACTIVE',
+          reason: 'Mistaken deletion',
+        },
+      });
+    });
+
+    it('should restore a deleted book to ARCHIVED', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue({
+        status: 'DELETED',
+        statusBeforeDelete: 'ARCHIVED',
+      });
+      mockPrismaService.book.updateMany.mockResolvedValue({ count: 1 });
+      mockPrismaService.book.findUniqueOrThrow.mockResolvedValue({
+        ...existingBook,
+        status: 'ARCHIVED',
+        deletedAt: null,
+        statusBeforeDelete: null,
+      });
+
+      await service.restore('book-001', {});
+
+      expect(mockPrismaService.bookLifecycleLog.create).toHaveBeenCalledWith({
+        data: {
+          bookId: 'book-001',
+          action: 'RESTORED',
+          previousStatus: 'DELETED',
+          newStatus: 'ARCHIVED',
+          reason: null,
+        },
+      });
+    });
+
+    it('should reject restoring a non-deleted book', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue({
+        status: 'ACTIVE',
+        statusBeforeDelete: null,
+      });
+
+      await expect(service.restore('book-001', {})).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
+    it('should throw NotFoundException when book does not exist', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue(null);
+
+      await expect(service.restore('book-999', {})).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should reject restoring when previous status is invalid', async () => {
+      mockPrismaService.book.findUnique.mockResolvedValue({
+        status: 'DELETED',
+        statusBeforeDelete: null,
+      });
+
+      await expect(service.restore('book-001', {})).rejects.toThrow(
+        ConflictException,
+      );
+    });
   });
 });

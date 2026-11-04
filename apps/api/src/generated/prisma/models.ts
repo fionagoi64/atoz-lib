@@ -8,5 +8,6 @@
  *
  * 🟢 You can import this file directly.
  */
-export type * from './models/Book.js'
-export type * from './commonInputTypes.js'
+export type * from './models/Book.ts'
+export type * from './models/BookLifecycleLog.ts'
+export type * from './commonInputTypes.ts'

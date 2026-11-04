@@ -9,7 +9,21 @@
 * 🟢 You can import this file directly.
 */
 
+export const BookStatus = {
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED',
+  DELETED: 'DELETED'
+} as const
+
+export type BookStatus = (typeof BookStatus)[keyof typeof BookStatus]
 
 
-// This file is empty because there are no enums in the schema.
-export {}
+export const BookLifecycleAction = {
+  CREATED: 'CREATED',
+  ARCHIVED: 'ARCHIVED',
+  UNARCHIVED: 'UNARCHIVED',
+  DELETED: 'DELETED',
+  RESTORED: 'RESTORED'
+} as const
+
+export type BookLifecycleAction = (typeof BookLifecycleAction)[keyof typeof BookLifecycleAction]

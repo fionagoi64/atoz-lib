@@ -12,11 +12,47 @@ datasource db {
   provider = "postgresql"
 }
 
+enum BookStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+enum BookLifecycleAction {
+  CREATED
+  ARCHIVED
+  UNARCHIVED
+  DELETED
+  RESTORED
+}
+
 model Book {
-  id        String   @id @default(uuid())
-  title     String
-  author    String?
-  isbn      String?  @unique
+  id     String  @id @default(uuid())
+  title  String
+  author String?
+  isbn   String? @unique
+
+  status             BookStatus  @default(ACTIVE)
+  deletedAt          DateTime?
+  statusBeforeDelete BookStatus?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  lifecycleLogs BookLifecycleLog[]
+}
+
+model BookLifecycleLog {
+  id             String              @id @default(uuid())
+  bookId         String
+  action         BookLifecycleAction
+  previousStatus BookStatus?
+  newStatus      BookStatus
+  reason         String?
+  adminId        String?
+  createdAt      DateTime            @default(now())
+
+  book Book @relation(fields: [bookId], references: [id], onDelete: Restrict)
+
+  @@index([bookId, createdAt])
 }

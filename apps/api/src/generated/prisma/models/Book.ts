@@ -9,8 +9,8 @@
  * 🟢 You can import this file directly.
  */
 import type * as runtime from "@prisma/client/runtime/client"
-import type * as $Enums from "../enums.js"
-import type * as Prisma from "../internal/prismaNamespace.js"
+import type * as $Enums from "../enums.ts"
+import type * as Prisma from "../internal/prismaNamespace.ts"
 
 /**
  * Model Book
@@ -29,6 +29,9 @@ export type BookMinAggregateOutputType = {
   title: string | null
   author: string | null
   isbn: string | null
+  status: $Enums.BookStatus | null
+  deletedAt: Date | null
+  statusBeforeDelete: $Enums.BookStatus | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -38,6 +41,9 @@ export type BookMaxAggregateOutputType = {
   title: string | null
   author: string | null
   isbn: string | null
+  status: $Enums.BookStatus | null
+  deletedAt: Date | null
+  statusBeforeDelete: $Enums.BookStatus | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -47,6 +53,9 @@ export type BookCountAggregateOutputType = {
   title: number
   author: number
   isbn: number
+  status: number
+  deletedAt: number
+  statusBeforeDelete: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -58,6 +67,9 @@ export type BookMinAggregateInputType = {
   title?: true
   author?: true
   isbn?: true
+  status?: true
+  deletedAt?: true
+  statusBeforeDelete?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -67,6 +79,9 @@ export type BookMaxAggregateInputType = {
   title?: true
   author?: true
   isbn?: true
+  status?: true
+  deletedAt?: true
+  statusBeforeDelete?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -76,6 +91,9 @@ export type BookCountAggregateInputType = {
   title?: true
   author?: true
   isbn?: true
+  status?: true
+  deletedAt?: true
+  statusBeforeDelete?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -158,6 +176,9 @@ export type BookGroupByOutputType = {
   title: string
   author: string | null
   isbn: string | null
+  status: $Enums.BookStatus
+  deletedAt: Date | null
+  statusBeforeDelete: $Enums.BookStatus | null
   createdAt: Date
   updatedAt: Date
   _count: BookCountAggregateOutputType | null
@@ -188,8 +209,12 @@ export type BookWhereInput = {
   title?: Prisma.StringFilter<"Book"> | string
   author?: Prisma.StringNullableFilter<"Book"> | string | null
   isbn?: Prisma.StringNullableFilter<"Book"> | string | null
+  status?: Prisma.EnumBookStatusFilter<"Book"> | $Enums.BookStatus
+  deletedAt?: Prisma.DateTimeNullableFilter<"Book"> | Date | string | null
+  statusBeforeDelete?: Prisma.EnumBookStatusNullableFilter<"Book"> | $Enums.BookStatus | null
   createdAt?: Prisma.DateTimeFilter<"Book"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Book"> | Date | string
+  lifecycleLogs?: Prisma.BookLifecycleLogListRelationFilter
 }
 
 export type BookOrderByWithRelationInput = {
@@ -197,8 +222,12 @@ export type BookOrderByWithRelationInput = {
   title?: Prisma.SortOrder
   author?: Prisma.SortOrderInput | Prisma.SortOrder
   isbn?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  statusBeforeDelete?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  lifecycleLogs?: Prisma.BookLifecycleLogOrderByRelationAggregateInput
 }
 
 export type BookWhereUniqueInput = Prisma.AtLeast<{
@@ -209,8 +238,12 @@ export type BookWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.BookWhereInput | Prisma.BookWhereInput[]
   title?: Prisma.StringFilter<"Book"> | string
   author?: Prisma.StringNullableFilter<"Book"> | string | null
+  status?: Prisma.EnumBookStatusFilter<"Book"> | $Enums.BookStatus
+  deletedAt?: Prisma.DateTimeNullableFilter<"Book"> | Date | string | null
+  statusBeforeDelete?: Prisma.EnumBookStatusNullableFilter<"Book"> | $Enums.BookStatus | null
   createdAt?: Prisma.DateTimeFilter<"Book"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Book"> | Date | string
+  lifecycleLogs?: Prisma.BookLifecycleLogListRelationFilter
 }, "id" | "isbn">
 
 export type BookOrderByWithAggregationInput = {
@@ -218,6 +251,9 @@ export type BookOrderByWithAggregationInput = {
   title?: Prisma.SortOrder
   author?: Prisma.SortOrderInput | Prisma.SortOrder
   isbn?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  statusBeforeDelete?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.BookCountOrderByAggregateInput
@@ -233,6 +269,9 @@ export type BookScalarWhereWithAggregatesInput = {
   title?: Prisma.StringWithAggregatesFilter<"Book"> | string
   author?: Prisma.StringNullableWithAggregatesFilter<"Book"> | string | null
   isbn?: Prisma.StringNullableWithAggregatesFilter<"Book"> | string | null
+  status?: Prisma.EnumBookStatusWithAggregatesFilter<"Book"> | $Enums.BookStatus
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Book"> | Date | string | null
+  statusBeforeDelete?: Prisma.EnumBookStatusNullableWithAggregatesFilter<"Book"> | $Enums.BookStatus | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Book"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Book"> | Date | string
 }
@@ -242,8 +281,12 @@ export type BookCreateInput = {
   title: string
   author?: string | null
   isbn?: string | null
+  status?: $Enums.BookStatus
+  deletedAt?: Date | string | null
+  statusBeforeDelete?: $Enums.BookStatus | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  lifecycleLogs?: Prisma.BookLifecycleLogCreateNestedManyWithoutBookInput
 }
 
 export type BookUncheckedCreateInput = {
@@ -251,8 +294,12 @@ export type BookUncheckedCreateInput = {
   title: string
   author?: string | null
   isbn?: string | null
+  status?: $Enums.BookStatus
+  deletedAt?: Date | string | null
+  statusBeforeDelete?: $Enums.BookStatus | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  lifecycleLogs?: Prisma.BookLifecycleLogUncheckedCreateNestedManyWithoutBookInput
 }
 
 export type BookUpdateInput = {
@@ -260,8 +307,12 @@ export type BookUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isbn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumBookStatusFieldUpdateOperationsInput | $Enums.BookStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  statusBeforeDelete?: Prisma.NullableEnumBookStatusFieldUpdateOperationsInput | $Enums.BookStatus | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lifecycleLogs?: Prisma.BookLifecycleLogUpdateManyWithoutBookNestedInput
 }
 
 export type BookUncheckedUpdateInput = {
@@ -269,8 +320,12 @@ export type BookUncheckedUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isbn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumBookStatusFieldUpdateOperationsInput | $Enums.BookStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  statusBeforeDelete?: Prisma.NullableEnumBookStatusFieldUpdateOperationsInput | $Enums.BookStatus | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lifecycleLogs?: Prisma.BookLifecycleLogUncheckedUpdateManyWithoutBookNestedInput
 }
 
 export type BookCreateManyInput = {
@@ -278,6 +333,9 @@ export type BookCreateManyInput = {
   title: string
   author?: string | null
   isbn?: string | null
+  status?: $Enums.BookStatus
+  deletedAt?: Date | string | null
+  statusBeforeDelete?: $Enums.BookStatus | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -287,6 +345,9 @@ export type BookUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isbn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumBookStatusFieldUpdateOperationsInput | $Enums.BookStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  statusBeforeDelete?: Prisma.NullableEnumBookStatusFieldUpdateOperationsInput | $Enums.BookStatus | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -296,6 +357,9 @@ export type BookUncheckedUpdateManyInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isbn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumBookStatusFieldUpdateOperationsInput | $Enums.BookStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  statusBeforeDelete?: Prisma.NullableEnumBookStatusFieldUpdateOperationsInput | $Enums.BookStatus | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -305,6 +369,9 @@ export type BookCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   author?: Prisma.SortOrder
   isbn?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
+  statusBeforeDelete?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -314,6 +381,9 @@ export type BookMaxOrderByAggregateInput = {
   title?: Prisma.SortOrder
   author?: Prisma.SortOrder
   isbn?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
+  statusBeforeDelete?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -323,8 +393,16 @@ export type BookMinOrderByAggregateInput = {
   title?: Prisma.SortOrder
   author?: Prisma.SortOrder
   isbn?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
+  statusBeforeDelete?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type BookScalarRelationFilter = {
+  is?: Prisma.BookWhereInput
+  isNot?: Prisma.BookWhereInput
 }
 
 export type StringFieldUpdateOperationsInput = {
@@ -335,10 +413,129 @@ export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
 
+export type EnumBookStatusFieldUpdateOperationsInput = {
+  set?: $Enums.BookStatus
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
+}
+
+export type NullableEnumBookStatusFieldUpdateOperationsInput = {
+  set?: $Enums.BookStatus | null
+}
+
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
+export type BookCreateNestedOneWithoutLifecycleLogsInput = {
+  create?: Prisma.XOR<Prisma.BookCreateWithoutLifecycleLogsInput, Prisma.BookUncheckedCreateWithoutLifecycleLogsInput>
+  connectOrCreate?: Prisma.BookCreateOrConnectWithoutLifecycleLogsInput
+  connect?: Prisma.BookWhereUniqueInput
+}
+
+export type BookUpdateOneRequiredWithoutLifecycleLogsNestedInput = {
+  create?: Prisma.XOR<Prisma.BookCreateWithoutLifecycleLogsInput, Prisma.BookUncheckedCreateWithoutLifecycleLogsInput>
+  connectOrCreate?: Prisma.BookCreateOrConnectWithoutLifecycleLogsInput
+  upsert?: Prisma.BookUpsertWithoutLifecycleLogsInput
+  connect?: Prisma.BookWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BookUpdateToOneWithWhereWithoutLifecycleLogsInput, Prisma.BookUpdateWithoutLifecycleLogsInput>, Prisma.BookUncheckedUpdateWithoutLifecycleLogsInput>
+}
+
+export type BookCreateWithoutLifecycleLogsInput = {
+  id?: string
+  title: string
+  author?: string | null
+  isbn?: string | null
+  status?: $Enums.BookStatus
+  deletedAt?: Date | string | null
+  statusBeforeDelete?: $Enums.BookStatus | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type BookUncheckedCreateWithoutLifecycleLogsInput = {
+  id?: string
+  title: string
+  author?: string | null
+  isbn?: string | null
+  status?: $Enums.BookStatus
+  deletedAt?: Date | string | null
+  statusBeforeDelete?: $Enums.BookStatus | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type BookCreateOrConnectWithoutLifecycleLogsInput = {
+  where: Prisma.BookWhereUniqueInput
+  create: Prisma.XOR<Prisma.BookCreateWithoutLifecycleLogsInput, Prisma.BookUncheckedCreateWithoutLifecycleLogsInput>
+}
+
+export type BookUpsertWithoutLifecycleLogsInput = {
+  update: Prisma.XOR<Prisma.BookUpdateWithoutLifecycleLogsInput, Prisma.BookUncheckedUpdateWithoutLifecycleLogsInput>
+  create: Prisma.XOR<Prisma.BookCreateWithoutLifecycleLogsInput, Prisma.BookUncheckedCreateWithoutLifecycleLogsInput>
+  where?: Prisma.BookWhereInput
+}
+
+export type BookUpdateToOneWithWhereWithoutLifecycleLogsInput = {
+  where?: Prisma.BookWhereInput
+  data: Prisma.XOR<Prisma.BookUpdateWithoutLifecycleLogsInput, Prisma.BookUncheckedUpdateWithoutLifecycleLogsInput>
+}
+
+export type BookUpdateWithoutLifecycleLogsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isbn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumBookStatusFieldUpdateOperationsInput | $Enums.BookStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  statusBeforeDelete?: Prisma.NullableEnumBookStatusFieldUpdateOperationsInput | $Enums.BookStatus | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type BookUncheckedUpdateWithoutLifecycleLogsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  author?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isbn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumBookStatusFieldUpdateOperationsInput | $Enums.BookStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  statusBeforeDelete?: Prisma.NullableEnumBookStatusFieldUpdateOperationsInput | $Enums.BookStatus | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+
+/**
+ * Count Type BookCountOutputType
+ */
+
+export type BookCountOutputType = {
+  lifecycleLogs: number
+}
+
+export type BookCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  lifecycleLogs?: boolean | BookCountOutputTypeCountLifecycleLogsArgs
+}
+
+/**
+ * BookCountOutputType without action
+ */
+export type BookCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BookCountOutputType
+   */
+  select?: Prisma.BookCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * BookCountOutputType without action
+ */
+export type BookCountOutputTypeCountLifecycleLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BookLifecycleLogWhereInput
+}
 
 
 export type BookSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -346,8 +543,13 @@ export type BookSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   title?: boolean
   author?: boolean
   isbn?: boolean
+  status?: boolean
+  deletedAt?: boolean
+  statusBeforeDelete?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  lifecycleLogs?: boolean | Prisma.Book$lifecycleLogsArgs<ExtArgs>
+  _count?: boolean | Prisma.BookCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["book"]>
 
 export type BookSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -355,6 +557,9 @@ export type BookSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   title?: boolean
   author?: boolean
   isbn?: boolean
+  status?: boolean
+  deletedAt?: boolean
+  statusBeforeDelete?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["book"]>
@@ -364,6 +569,9 @@ export type BookSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   title?: boolean
   author?: boolean
   isbn?: boolean
+  status?: boolean
+  deletedAt?: boolean
+  statusBeforeDelete?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["book"]>
@@ -373,20 +581,34 @@ export type BookSelectScalar = {
   title?: boolean
   author?: boolean
   isbn?: boolean
+  status?: boolean
+  deletedAt?: boolean
+  statusBeforeDelete?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type BookOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "author" | "isbn" | "createdAt" | "updatedAt", ExtArgs["result"]["book"]>
+export type BookOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "author" | "isbn" | "status" | "deletedAt" | "statusBeforeDelete" | "createdAt" | "updatedAt", ExtArgs["result"]["book"]>
+export type BookInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  lifecycleLogs?: boolean | Prisma.Book$lifecycleLogsArgs<ExtArgs>
+  _count?: boolean | Prisma.BookCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type BookIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type BookIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $BookPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Book"
-  objects: {}
+  objects: {
+    lifecycleLogs: Prisma.$BookLifecycleLogPayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     title: string
     author: string | null
     isbn: string | null
+    status: $Enums.BookStatus
+    deletedAt: Date | null
+    statusBeforeDelete: $Enums.BookStatus | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["book"]>
@@ -783,6 +1005,7 @@ readonly fields: BookFieldRefs;
  */
 export interface Prisma__BookClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  lifecycleLogs<T extends Prisma.Book$lifecycleLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Book$lifecycleLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookLifecycleLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -816,6 +1039,9 @@ export interface BookFieldRefs {
   readonly title: Prisma.FieldRef<"Book", 'String'>
   readonly author: Prisma.FieldRef<"Book", 'String'>
   readonly isbn: Prisma.FieldRef<"Book", 'String'>
+  readonly status: Prisma.FieldRef<"Book", 'BookStatus'>
+  readonly deletedAt: Prisma.FieldRef<"Book", 'DateTime'>
+  readonly statusBeforeDelete: Prisma.FieldRef<"Book", 'BookStatus'>
   readonly createdAt: Prisma.FieldRef<"Book", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Book", 'DateTime'>
 }
@@ -835,6 +1061,10 @@ export type BookFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.Internal
    */
   omit?: Prisma.BookOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookInclude<ExtArgs> | null
+  /**
    * Filter, which Book to fetch.
    */
   where: Prisma.BookWhereUniqueInput
@@ -853,6 +1083,10 @@ export type BookFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   omit?: Prisma.BookOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookInclude<ExtArgs> | null
+  /**
    * Filter, which Book to fetch.
    */
   where: Prisma.BookWhereUniqueInput
@@ -870,6 +1104,10 @@ export type BookFindFirstArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    * Omit specific fields from the Book
    */
   omit?: Prisma.BookOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookInclude<ExtArgs> | null
   /**
    * Filter, which Book to fetch.
    */
@@ -919,6 +1157,10 @@ export type BookFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   omit?: Prisma.BookOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookInclude<ExtArgs> | null
+  /**
    * Filter, which Book to fetch.
    */
   where?: Prisma.BookWhereInput
@@ -966,6 +1208,10 @@ export type BookFindManyArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    * Omit specific fields from the Book
    */
   omit?: Prisma.BookOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookInclude<ExtArgs> | null
   /**
    * Filter, which Books to fetch.
    */
@@ -1015,6 +1261,10 @@ export type BookCreateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
    */
   omit?: Prisma.BookOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookInclude<ExtArgs> | null
+  /**
    * The data needed to create a Book.
    */
   data: Prisma.XOR<Prisma.BookCreateInput, Prisma.BookUncheckedCreateInput>
@@ -1062,6 +1312,10 @@ export type BookUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
    * Omit specific fields from the Book
    */
   omit?: Prisma.BookOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookInclude<ExtArgs> | null
   /**
    * The data needed to update a Book.
    */
@@ -1129,6 +1383,10 @@ export type BookUpsertArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
    */
   omit?: Prisma.BookOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookInclude<ExtArgs> | null
+  /**
    * The filter to search for the Book to update in case it exists.
    */
   where: Prisma.BookWhereUniqueInput
@@ -1155,6 +1413,10 @@ export type BookDeleteArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
    */
   omit?: Prisma.BookOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookInclude<ExtArgs> | null
+  /**
    * Filter which Book to delete.
    */
   where: Prisma.BookWhereUniqueInput
@@ -1175,6 +1437,30 @@ export type BookDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 /**
+ * Book.lifecycleLogs
+ */
+export type Book$lifecycleLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BookLifecycleLog
+   */
+  select?: Prisma.BookLifecycleLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BookLifecycleLog
+   */
+  omit?: Prisma.BookLifecycleLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookLifecycleLogInclude<ExtArgs> | null
+  where?: Prisma.BookLifecycleLogWhereInput
+  orderBy?: Prisma.BookLifecycleLogOrderByWithRelationInput | Prisma.BookLifecycleLogOrderByWithRelationInput[]
+  cursor?: Prisma.BookLifecycleLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BookLifecycleLogScalarFieldEnum | Prisma.BookLifecycleLogScalarFieldEnum[]
+}
+
+/**
  * Book without action
  */
 export type BookDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1186,4 +1472,8 @@ export type BookDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    * Omit specific fields from the Book
    */
   omit?: Prisma.BookOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookInclude<ExtArgs> | null
 }
